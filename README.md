@@ -33,8 +33,8 @@ and set the `JoinAddr` to an address of any peer (i.e. `127.0.0.1:7946`).
 
 # FSM
 The included FSM should only be used for debug.  You will most likely want to
-bring your own FSM.  See the example for details on how to implement
-your own.  You can pass in your custom FSM like so:
+bring your own.  See the example for details on how to implement it.
+You can pass in your custom FSM like so:
 
 ```go
 fsm := &MyFSM{}
