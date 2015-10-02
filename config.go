@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/serf/serf"
 )
 
-type DiscoverConfig struct {
+type Config struct {
 	Name              string
 	BindAddr          string
 	BindPort          int

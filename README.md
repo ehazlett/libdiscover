@@ -7,7 +7,7 @@ machines.
 # Example
 
 ```go
-cfg := &libdiscover.DiscoverConfig{
+cfg := &libdiscover.Config{
     Name: "node-00",
     BindAddr: "127.0.0.1",
     BindPort: 7946,

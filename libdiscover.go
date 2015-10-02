@@ -31,7 +31,7 @@ type Discover struct {
 	debug             bool
 }
 
-func NewDiscover(cfg *DiscoverConfig, fsm raft.FSM) (*Discover, error) {
+func NewDiscover(cfg *Config, fsm raft.FSM) (*Discover, error) {
 	s := &Discover{
 		name:              cfg.Name,
 		bindAddr:          cfg.BindAddr,
