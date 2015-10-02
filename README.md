@@ -1,5 +1,5 @@
 # libdiscover
-libdiscover is a library for distributed systems.  It uses Gossip via 
+libdiscover is a library for building distributed systems.  It uses Gossip via 
 [Serf](https://serfdom.io/) for node discovery and 
 [Raft](https://github.com/hashicorp/raft) for replicated log and state
 machines.
