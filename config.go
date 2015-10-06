@@ -1,8 +1,6 @@
 package libdiscover
 
 import (
-	"net"
-
 	"github.com/hashicorp/raft"
 	"github.com/hashicorp/serf/serf"
 )
@@ -10,11 +8,9 @@ import (
 type Config struct {
 	Name              string
 	BindAddr          string
-	BindPort          int
 	AdvertiseAddr     string
-	AdvertisePort     int
 	RaftBindAddr      string
-	RaftAdvertiseAddr net.Addr
+	RaftAdvertiseAddr string
 	JoinAddr          string
 	StorePath         string
 	Handlers          map[string]func(e serf.UserEvent) error

@@ -2,6 +2,8 @@ package libdiscover
 
 import (
 	"net"
+	"strconv"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -32,14 +34,17 @@ type Discover struct {
 }
 
 func NewDiscover(cfg *Config, fsm raft.FSM) (*Discover, error) {
+	raftAdvAddr, err := net.ResolveTCPAddr("tcp", cfg.RaftAdvertiseAddr)
+	if err != nil {
+		return nil, err
+	}
+
 	s := &Discover{
 		name:              cfg.Name,
 		bindAddr:          cfg.BindAddr,
-		bindPort:          cfg.BindPort,
 		advertiseAddr:     cfg.AdvertiseAddr,
-		advertisePort:     cfg.AdvertisePort,
 		raftBindAddr:      cfg.RaftBindAddr,
-		raftAdvertiseAddr: cfg.RaftAdvertiseAddr,
+		raftAdvertiseAddr: raftAdvAddr,
 		joinAddr:          cfg.JoinAddr,
 		storePath:         cfg.StorePath,
 		handlers:          cfg.Handlers,
@@ -67,11 +72,41 @@ func (d *Discover) Members() []serf.Member {
 func (d *Discover) Run() error {
 	mCfg := memberlist.DefaultLANConfig()
 
+	bindAddr := "127.0.0.1"
+	bindPort := 7946
+
+	bindParts := strings.Split(d.bindAddr, ":")
+
+	if len(bindParts) > 1 {
+		bindAddr = bindParts[0]
+		p, err := strconv.Atoi(bindParts[1])
+		if err != nil {
+			return err
+		}
+
+		bindPort = p
+	}
+
+	advertiseAddr := "127.0.0.1"
+	advertisePort := 7946
+
+	advParts := strings.Split(d.bindAddr, ":")
+
+	if len(advParts) > 1 {
+		advertiseAddr = advParts[0]
+		p, err := strconv.Atoi(advParts[1])
+		if err != nil {
+			return err
+		}
+
+		advertisePort = p
+	}
+
 	mCfg.Name = d.name
-	mCfg.BindAddr = d.bindAddr
-	mCfg.BindPort = d.bindPort
-	mCfg.AdvertiseAddr = d.advertiseAddr
-	mCfg.AdvertisePort = d.advertisePort
+	mCfg.BindAddr = bindAddr
+	mCfg.BindPort = bindPort
+	mCfg.AdvertiseAddr = advertiseAddr
+	mCfg.AdvertisePort = advertisePort
 
 	cfg := serf.DefaultConfig()
 	cfg.NodeName = d.name

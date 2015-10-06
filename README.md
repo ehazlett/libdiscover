@@ -9,11 +9,9 @@ machines.
 ```go
 cfg := &libdiscover.Config{
     Name: "node-00",
-    BindAddr: "127.0.0.1",
-    BindPort: 7946,
-    AdvertiseAddr: "127.0.0.1",
-    AdvertisePort: 7946,
-    RaftBindAddr: "127.0.0.1",
+    BindAddr: "127.0.0.1:7946",
+    AdvertiseAddr: "127.0.0.1:7946",
+    RaftBindAddr: "127.0.0.1:8946",
     RaftAdvertiseAddr: "127.0.0.1:8946",
     JoinAddr: "",
     StorePath: "/tmp/store",
