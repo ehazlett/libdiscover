@@ -175,8 +175,8 @@ func (d *Discover) Apply(cmd []byte, timeout time.Duration) error {
 }
 
 // SendEvent allows for sending custom events in the cluster
-func (d *Discover) SendEvent(name string, data []byte) error {
-	if err := d.cluster.UserEvent(name, data, true); err != nil {
+func (d *Discover) SendEvent(name string, data []byte, coalesce bool) error {
+	if err := d.cluster.UserEvent(name, data, coalesce); err != nil {
 		return err
 	}
 
