@@ -14,11 +14,14 @@ cfg := &libdiscover.Config{
     Debug: true,
 }
 
-// make sure to handle this error
+// create the discovery server; be sure to handle the erro
 d, _ := libdiscover.NewDiscover(cfg)
 
-// make sure to handle this error
+// start the node; be sure to handle the error
 _ = d.Run()
+
+// send an event ; be sure to handle the error
+_ = d.SendEvent("test-event", []byte("testing"), false)
 ```
 
 This will start everything needed to start discovery and replication.  To
