@@ -1,64 +1,48 @@
 package libdiscover
 
 import (
-	"net"
+	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	logrus "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/memberlist"
-	"github.com/hashicorp/raft"
-	boltdb "github.com/hashicorp/raft-boltdb"
 	"github.com/hashicorp/serf/serf"
 )
 
 type Discover struct {
-	name              string
-	bindAddr          string
-	bindPort          int
-	advertiseAddr     string
-	advertisePort     int
-	raftBindAddr      string
-	raftAdvertiseAddr net.Addr
-	joinAddr          string
-	storePath         string
-	handlers          map[string]func(e serf.UserEvent) error
-	handlerErrCh      chan error
-	fsm               raft.FSM
-	raft              *raft.Raft
-	raftStore         *boltdb.BoltStore
-	raftPeerStore     raft.PeerStore
-	cluster           *serf.Serf
-	debug             bool
+	name             string
+	bindAddr         string
+	bindPort         int
+	advertiseAddr    string
+	advertisePort    int
+	joinAddr         string
+	cluster          *serf.Serf
+	logger           *log.Logger
+	userEventHandler func(e serf.UserEvent) error
+	nodeTimeout      time.Duration
+	debug            bool
 }
 
-func NewDiscover(cfg *Config, fsm raft.FSM) (*Discover, error) {
-	raftAdvAddr, err := net.ResolveTCPAddr("tcp", cfg.RaftAdvertiseAddr)
-	if err != nil {
-		return nil, err
+func NewDiscover(cfg *Config) (*Discover, error) {
+	d := &Discover{
+		name:             cfg.Name,
+		bindAddr:         cfg.BindAddr,
+		advertiseAddr:    cfg.AdvertiseAddr,
+		joinAddr:         cfg.JoinAddr,
+		logger:           cfg.Logger,
+		userEventHandler: cfg.EventHandler,
+		nodeTimeout:      cfg.NodeTimeout,
+		debug:            cfg.Debug,
 	}
 
-	s := &Discover{
-		name:              cfg.Name,
-		bindAddr:          cfg.BindAddr,
-		advertiseAddr:     cfg.AdvertiseAddr,
-		raftBindAddr:      cfg.RaftBindAddr,
-		raftAdvertiseAddr: raftAdvAddr,
-		joinAddr:          cfg.JoinAddr,
-		storePath:         cfg.StorePath,
-		handlers:          cfg.Handlers,
-		handlerErrCh:      cfg.HandlerErrCh,
-		fsm:               fsm,
-		debug:             cfg.Debug,
-	}
-
-	return s, nil
+	return d, nil
 }
 
-func (d *Discover) SetHandlers(h map[string]func(e serf.UserEvent) error, c chan error) {
-	d.handlers = h
-	d.handlerErrCh = c
+func (d *Discover) Name() string {
+	return d.name
 }
 
 func (d *Discover) LocalNode() *memberlist.Node {
@@ -71,6 +55,7 @@ func (d *Discover) Members() []serf.Member {
 
 func (d *Discover) Run() error {
 	mCfg := memberlist.DefaultLANConfig()
+	mCfg.Logger = d.logger
 
 	bindAddr := "127.0.0.1"
 	bindPort := 7946
@@ -110,7 +95,7 @@ func (d *Discover) Run() error {
 
 	cfg := serf.DefaultConfig()
 	cfg.NodeName = d.name
-	cfg.MemberlistConfig = mCfg
+	cfg.TombstoneTimeout = d.nodeTimeout
 
 	// handle events
 	eventChan := make(chan serf.Event)
@@ -119,10 +104,18 @@ func (d *Discover) Run() error {
 	errorChan := make(chan error)
 	go func() {
 		err := <-errorChan
-		log.Error(err)
+		logrus.Error(err)
 	}()
 
 	go d.eventHandler(eventChan, errorChan)
+
+	// set log output
+	if !d.debug {
+		cfg.LogOutput = ioutil.Discard
+		mCfg.LogOutput = ioutil.Discard
+	}
+
+	cfg.MemberlistConfig = mCfg
 
 	srv, err := serf.Create(cfg)
 	if err != nil {
@@ -131,44 +124,17 @@ func (d *Discover) Run() error {
 
 	d.cluster = srv
 
-	enableSingleNode := true
 	if d.joinAddr != "" {
-		log.Debugf("joining cluster: addr=%s", d.joinAddr)
+		logrus.Debugf("joining cluster: addr=%s", d.joinAddr)
 
 		if _, err := srv.Join([]string{d.joinAddr}, true); err != nil {
 			return err
 		}
-
-		enableSingleNode = false
 	}
 
 	// broadcast join event
-	if err := d.cluster.UserEvent("node-join", []byte(d.raftAdvertiseAddr.String()), false); err != nil {
+	if err := d.cluster.UserEvent("node-join", []byte(d.advertiseAddr), false); err != nil {
 		return err
-	}
-
-	if err := d.initRaft(enableSingleNode); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// IsLeader returns a boolean whether the node is the cluster leader
-func (d *Discover) IsLeader() bool {
-	if d.raft.State() == raft.Leader {
-		return true
-	}
-
-	return false
-}
-
-// Apply issues a command to the FSM
-func (d *Discover) Apply(cmd []byte, timeout time.Duration) error {
-	if d.raft.State() == raft.Leader {
-		if f := d.raft.Apply(cmd, timeout); f.Error() != nil {
-			return f.Error()
-		}
 	}
 
 	return nil
@@ -186,16 +152,8 @@ func (d *Discover) SendEvent(name string, data []byte, coalesce bool) error {
 // Stop shuts down the cluster
 func (d *Discover) Stop() error {
 	// broadcast node leave
-	if err := d.cluster.UserEvent("node-leave", []byte(d.raftAdvertiseAddr.String()), false); err != nil {
+	if err := d.cluster.UserEvent("node-leave", []byte(d.advertiseAddr), false); err != nil {
 		return err
-	}
-
-	// wait for replication
-	time.Sleep(time.Millisecond * 100)
-
-	// shutdown raft
-	if future := d.raft.Shutdown(); future.Error() != nil {
-		return future.Error()
 	}
 
 	// leave serf cluster
@@ -203,10 +161,10 @@ func (d *Discover) Stop() error {
 		return err
 	}
 
-	return nil
-}
+	// shutdown background listeners
+	if err := d.cluster.Shutdown(); err != nil {
+		return err
+	}
 
-// StorePath returns the base store path for the cluster
-func (d *Discover) StorePath() string {
-	return d.storePath
+	return nil
 }
