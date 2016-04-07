@@ -11,7 +11,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/libdiscover"
-	"github.com/hashicorp/serf/serf"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -45,7 +44,7 @@ func randomName() string {
 	return strings.ToLower("node-" + string(b))
 }
 
-func eventHandler(e serf.UserEvent) error {
+func eventHandler(e libdiscover.Event) error {
 	data := string(e.Payload)
 	log.Infof("user event: name=%s data=%s", e.Name, data)
 

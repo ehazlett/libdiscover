@@ -21,7 +21,7 @@ type Discover struct {
 	joinAddr         string
 	cluster          *serf.Serf
 	logger           *log.Logger
-	userEventHandler func(e serf.UserEvent) error
+	userEventHandler func(e Event) error
 	nodeTimeout      time.Duration
 	debug            bool
 }

@@ -5,6 +5,10 @@ import (
 	"github.com/hashicorp/serf/serf"
 )
 
+type Event struct {
+	serf.UserEvent
+}
+
 // eventHandler handles all events sent through the cluster
 func (d *Discover) eventHandler(eventCh chan serf.Event, errCh chan error) {
 	for {
@@ -27,7 +31,7 @@ func (d *Discover) handleEvent(evt serf.Event) error {
 		}
 	case serf.EventMemberJoin:
 	case serf.EventUser:
-		if err := d.userEventHandler(evt.(serf.UserEvent)); err != nil {
+		if err := d.userEventHandler(evt.(Event)); err != nil {
 			return err
 		}
 	}

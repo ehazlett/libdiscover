@@ -1,0 +1,52 @@
+{
+	"ImportPath": "github.com/ehazlett/libdiscover",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.10.0",
+			"Rev": "4b6ea7319e214d98c938f12692336f7ca9348d6b"
+		},
+		{
+			"ImportPath": "github.com/armon/go-metrics",
+			"Rev": "f303b03b91d770a11a39677f1d3b55da4002bbcb"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/errwrap",
+			"Rev": "7554cd9344cec97297fa6649b055a8c98c2a1e55"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-msgpack/codec",
+			"Rev": "fa3f63826f7c23912c15263591e65d54d080b458"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-multierror",
+			"Rev": "d30f09973e19c1dfcd120b2d9c4f168e68d6b5d5"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/memberlist",
+			"Rev": "88ac4de0d1a0ca6def284b571342db3b777a4c37"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/serf/coordinate",
+			"Comment": "v0.7.0-48-g979180d",
+			"Rev": "979180d19cb3c60f58fda490533e8e22a21c5aae"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/serf/serf",
+			"Comment": "v0.7.0-48-g979180d",
+			"Rev": "979180d19cb3c60f58fda490533e8e22a21c5aae"
+		},
+		{
+			"ImportPath": "github.com/miekg/dns",
+			"Rev": "7e024ce8ce18b21b475ac6baf8fa3c42536bf2fa"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "042a8f53ce82bbe081222da955159491e32146a0"
+		}
+	]
+}

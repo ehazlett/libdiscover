@@ -3,8 +3,6 @@ package libdiscover
 import (
 	"log"
 	"time"
-
-	"github.com/hashicorp/serf/serf"
 )
 
 type Config struct {
@@ -13,7 +11,7 @@ type Config struct {
 	AdvertiseAddr string
 	JoinAddr      string
 	Logger        *log.Logger
-	EventHandler  func(e serf.UserEvent) error
+	EventHandler  func(e Event) error
 	NodeTimeout   time.Duration
 	Debug         bool
 }
