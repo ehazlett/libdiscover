@@ -31,7 +31,10 @@ func (d *Discover) handleEvent(evt serf.Event) error {
 		}
 	case serf.EventMemberJoin:
 	case serf.EventUser:
-		if err := d.userEventHandler(evt.(Event)); err != nil {
+		e := Event{
+			evt.(serf.UserEvent),
+		}
+		if err := d.userEventHandler(e); err != nil {
 			return err
 		}
 	}
