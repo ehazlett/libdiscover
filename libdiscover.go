@@ -1,6 +1,7 @@
 package libdiscover
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -15,9 +16,7 @@ import (
 type Discover struct {
 	name             string
 	bindAddr         string
-	bindPort         int
 	advertiseAddr    string
-	advertisePort    int
 	joinAddr         string
 	cluster          *serf.Serf
 	logger           *log.Logger
@@ -51,6 +50,10 @@ func (d *Discover) LocalNode() *memberlist.Node {
 
 func (d *Discover) Members() []serf.Member {
 	return d.cluster.Members()
+}
+
+func (d *Discover) Addr() string {
+	return d.advertiseAddr
 }
 
 func (d *Discover) Run() error {
@@ -133,7 +136,10 @@ func (d *Discover) Run() error {
 	}
 
 	// broadcast join event
-	if err := d.cluster.UserEvent("node-join", []byte(d.advertiseAddr), false); err != nil {
+	if err := d.SendEvent("node-join", map[string]interface{}{
+		"name": d.Name(),
+		"addr": d.Addr(),
+	}, false); err != nil {
 		return err
 	}
 
@@ -141,8 +147,18 @@ func (d *Discover) Run() error {
 }
 
 // SendEvent allows for sending custom events in the cluster
-func (d *Discover) SendEvent(name string, data []byte, coalesce bool) error {
-	if err := d.cluster.UserEvent(name, data, coalesce); err != nil {
+func (d *Discover) SendEvent(name string, data map[string]interface{}, coalesce bool) error {
+	// inject timestamp if not present
+	if _, ok := data["timestamp"]; !ok {
+		data["timestamp"] = time.Now().Unix()
+	}
+
+	payload, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	if err := d.cluster.UserEvent(name, payload, coalesce); err != nil {
 		return err
 	}
 
@@ -152,7 +168,10 @@ func (d *Discover) SendEvent(name string, data []byte, coalesce bool) error {
 // Stop shuts down the cluster
 func (d *Discover) Stop() error {
 	// broadcast node leave
-	if err := d.cluster.UserEvent("node-leave", []byte(d.advertiseAddr), false); err != nil {
+	if err := d.SendEvent("node-leave", map[string]interface{}{
+		"name": d.Name(),
+		"addr": d.Addr(),
+	}, false); err != nil {
 		return err
 	}
 

@@ -25,6 +25,10 @@ var (
 	flClusterDebug  bool
 )
 
+type heartbeatInfo struct {
+	Name string `json:"name"`
+}
+
 func init() {
 	flag.StringVar(&flNodeName, "name", "", "bind address")
 	flag.StringVar(&flBindAddr, "bind", "127.0.0.1:7946", "bind address")
@@ -96,8 +100,9 @@ func main() {
 			}
 
 			log.Debugf("members: num=%d nodes=%s", len(members), strings.Join(nodes, ","))
-
-			if err := d.SendEvent("heartbeat", []byte(d.Name()), false); err != nil {
+			if err := d.SendEvent("heartbeat", map[string]interface{}{
+				"name": flNodeName,
+			}, false); err != nil {
 				log.Error(err)
 			}
 		}

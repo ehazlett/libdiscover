@@ -1,12 +1,18 @@
 package libdiscover
 
 import (
+	"encoding/json"
+	"fmt"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/serf/serf"
 )
 
 type Event struct {
 	serf.UserEvent
+	Created int64 `json:"created"`
+	Data    interface{}
 }
 
 // eventHandler handles all events sent through the cluster
@@ -31,9 +37,20 @@ func (d *Discover) handleEvent(evt serf.Event) error {
 		}
 	case serf.EventMemberJoin:
 	case serf.EventUser:
-		e := Event{
-			evt.(serf.UserEvent),
+		se := evt.(serf.UserEvent)
+
+		var data interface{}
+		if err := json.Unmarshal(se.Payload, &data); err != nil {
+			log.Errorf("payload: %v", string(se.Payload))
+			return fmt.Errorf("error unmarshalling payload: %s", err)
 		}
+
+		e := Event{
+			se,
+			time.Now().Unix(),
+			data,
+		}
+
 		if err := d.userEventHandler(e); err != nil {
 			return err
 		}
