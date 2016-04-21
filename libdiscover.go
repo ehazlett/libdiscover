@@ -2,6 +2,7 @@ package libdiscover
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -150,7 +151,12 @@ func (d *Discover) Run() error {
 func (d *Discover) SendEvent(name string, data map[string]interface{}, coalesce bool) error {
 	// inject timestamp if not present
 	if _, ok := data["timestamp"]; !ok {
-		data["timestamp"] = time.Now().Unix()
+		data["timestamp"] = fmt.Sprintf("%d", time.Now().Unix())
+	}
+
+	// inject event name
+	if _, ok := data["event_type"]; !ok {
+		data["event_type"] = name
 	}
 
 	payload, err := json.Marshal(data)
