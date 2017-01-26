@@ -1,0 +1,29 @@
+hash: db1accb6c521bb37754b270bbe7ff9b4460def0e3519921fcca2481389adecaf
+updated: 2017-01-26T00:37:00.373331482-05:00
+imports:
+- name: github.com/armon/go-metrics
+  version: 93f237eba9b0602f3e73710416558854a81d9337
+- name: github.com/hashicorp/errwrap
+  version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
+- name: github.com/hashicorp/go-msgpack
+  version: fa3f63826f7c23912c15263591e65d54d080b458
+  subpackages:
+  - codec
+- name: github.com/hashicorp/go-multierror
+  version: ed905158d87462226a13fe39ddf685ea65f1c11f
+- name: github.com/hashicorp/memberlist
+  version: 9800c50ab79c002353852a9b1095e9591b161513
+- name: github.com/hashicorp/serf
+  version: d3a67ab21bc8a4643fa53a3633f2d951dd50c6ca
+  subpackages:
+  - coordinate
+  - serf
+- name: github.com/miekg/dns
+  version: ca336a1f95a6b89be9c250df26c7a41742eb4a6f
+- name: github.com/Sirupsen/logrus
+  version: d26492970760ca5d33129d2d799e34be5c4782eb
+- name: golang.org/x/sys
+  version: d75a52659825e75fff6158388dddc6a5b04f9ba5
+  subpackages:
+  - unix
+testImports: []
