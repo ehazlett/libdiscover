@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	logrus "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/memberlist"
 	"github.com/hashicorp/serf/serf"
+	"github.com/sirupsen/logrus"
 )
 
 type Discover struct {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/hashicorp/serf/serf"
+	"github.com/sirupsen/logrus"
 )
 
 type Event struct {
@@ -41,7 +41,7 @@ func (d *Discover) handleEvent(evt serf.Event) error {
 
 		var data interface{}
 		if err := json.Unmarshal(se.Payload, &data); err != nil {
-			log.Errorf("payload: %v", string(se.Payload))
+			logrus.Errorf("payload: %v", string(se.Payload))
 			return fmt.Errorf("error unmarshalling payload: %s", err)
 		}
 
@@ -62,7 +62,7 @@ func (d *Discover) handleEvent(evt serf.Event) error {
 func (d *Discover) handleMemberLeave(evt serf.Event) error {
 	if e, ok := evt.(serf.MemberEvent); ok {
 		for _, m := range e.Members {
-			log.Debugf("member leave: %s", m.Name)
+			logrus.Debugf("member leave: %s", m.Name)
 		}
 	}
 
@@ -72,7 +72,7 @@ func (d *Discover) handleMemberLeave(evt serf.Event) error {
 func (d *Discover) handleMemberFail(evt serf.Event) error {
 	if e, ok := evt.(serf.MemberEvent); ok {
 		for _, m := range e.Members {
-			log.Debugf("member fail: %s", m.Name)
+			logrus.Debugf("member fail: %s", m.Name)
 		}
 	}
 

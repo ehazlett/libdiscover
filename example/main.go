@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/ehazlett/libdiscover"
+	"github.com/sirupsen/logrus"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -50,7 +50,7 @@ func randomName() string {
 
 func eventHandler(e libdiscover.Event) error {
 	data := string(e.Payload)
-	log.Infof("user event: name=%s data=%s", e.Name, data)
+	logrus.Infof("user event: name=%s data=%s", e.Name, data)
 
 	return nil
 }
@@ -63,8 +63,8 @@ func main() {
 	}
 
 	if flDebug {
-		log.SetLevel(log.DebugLevel)
-		log.Debug("debug enabled")
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.Debug("debug enabled")
 	}
 
 	if flNodeTimeout == 0 {
@@ -84,10 +84,10 @@ func main() {
 	// make sure to handle this error
 	d, err := libdiscover.NewDiscover(cfg)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
-	log.Infof("node id: %s", flNodeName)
+	logrus.Infof("node id: %s", flNodeName)
 
 	ticker := time.NewTicker(time.Millisecond * 5000)
 	go func() {
@@ -99,18 +99,18 @@ func main() {
 				nodes = append(nodes, m.Name)
 			}
 
-			log.Debugf("members: num=%d nodes=%s", len(members), strings.Join(nodes, ","))
+			logrus.Debugf("members: num=%d nodes=%s", len(members), strings.Join(nodes, ","))
 			if err := d.SendEvent("heartbeat", map[string]interface{}{
 				"name": flNodeName,
 			}, false); err != nil {
-				log.Error(err)
+				logrus.Error(err)
 			}
 		}
 	}()
 
 	// make sure to handle this error
 	if err := d.Run(); err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 
 	// handle interrupt
@@ -124,8 +124,8 @@ func main() {
 
 	<-done
 
-	log.Debug("stopping")
+	logrus.Debug("stopping")
 	if err := d.Stop(); err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 }
