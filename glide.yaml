@@ -1,0 +1,7 @@
+package: github.com/ehazlett/libdiscover
+import:
+- package: github.com/Sirupsen/logrus
+- package: github.com/hashicorp/memberlist
+- package: github.com/hashicorp/serf
+  subpackages:
+  - serf
