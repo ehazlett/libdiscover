@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"math/rand"
 	"os"
@@ -100,9 +101,15 @@ func main() {
 			}
 
 			logrus.Debugf("members: num=%d nodes=%s", len(members), strings.Join(nodes, ","))
-			if err := d.SendEvent("heartbeat", map[string]interface{}{
+			info := map[string]string{
 				"name": flNodeName,
-			}, false); err != nil {
+			}
+
+			data, err := json.Marshal(info)
+			if err != nil {
+				logrus.Fatal(err)
+			}
+			if err := d.SendEvent("heartbeat", data, false); err != nil {
 				logrus.Error(err)
 			}
 		}

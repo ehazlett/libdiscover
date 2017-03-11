@@ -2,7 +2,6 @@ package libdiscover
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -137,10 +136,15 @@ func (d *Discover) Run() error {
 	}
 
 	// broadcast join event
-	if err := d.SendEvent("node-join", map[string]interface{}{
+	info := map[string]string{
 		"name": d.Name(),
 		"addr": d.Addr(),
-	}, false); err != nil {
+	}
+	data, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+	if err := d.SendEvent("node-join", data, false); err != nil {
 		return err
 	}
 
@@ -149,11 +153,6 @@ func (d *Discover) Run() error {
 
 // SendEvent allows for sending custom events in the cluster
 func (d *Discover) SendEvent(name string, data []byte, coalesce bool) error {
-	// inject timestamp if not present
-	if _, ok := data["timestamp"]; !ok {
-		data["timestamp"] = fmt.Sprintf("%d", time.Now().Unix())
-	}
-
 	if err := d.cluster.UserEvent(name, data, coalesce); err != nil {
 		return err
 	}
