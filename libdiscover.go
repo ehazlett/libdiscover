@@ -148,23 +148,13 @@ func (d *Discover) Run() error {
 }
 
 // SendEvent allows for sending custom events in the cluster
-func (d *Discover) SendEvent(name string, data map[string]interface{}, coalesce bool) error {
+func (d *Discover) SendEvent(name string, data []byte, coalesce bool) error {
 	// inject timestamp if not present
 	if _, ok := data["timestamp"]; !ok {
 		data["timestamp"] = fmt.Sprintf("%d", time.Now().Unix())
 	}
 
-	// inject event name
-	if _, ok := data["event_type"]; !ok {
-		data["event_type"] = name
-	}
-
-	payload, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	if err := d.cluster.UserEvent(name, payload, coalesce); err != nil {
+	if err := d.cluster.UserEvent(name, data, coalesce); err != nil {
 		return err
 	}
 
@@ -174,10 +164,15 @@ func (d *Discover) SendEvent(name string, data map[string]interface{}, coalesce 
 // Stop shuts down the cluster
 func (d *Discover) Stop() error {
 	// broadcast node leave
-	if err := d.SendEvent("node-leave", map[string]interface{}{
+	info := map[string]string{
 		"name": d.Name(),
 		"addr": d.Addr(),
-	}, false); err != nil {
+	}
+	data, err := json.Marshal(info)
+	if err != nil {
+		return err
+	}
+	if err := d.SendEvent("node-leave", data, false); err != nil {
 		return err
 	}
 
